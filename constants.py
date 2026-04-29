@@ -36,7 +36,7 @@ GRAVITY = 1.0               # px/frame² downward acceleration
 JUMP_SPEED = 20.0           # px/frame initial upward velocity on jump
 
 # —— Obstacles
-OBSTACLE_BASE_SPEED = 280.0       # px/sec starting speed
+OBSTACLE_BASE_SPEED = 300.0       # px/sec starting speed
 OBSTACLE_SPEED_INCREMENT = 15.0   # px/sec added each time difficulty increases
 OBSTACLE_MAX_SPEED = 650.0
 OBSTACLE_BASE_INTERVAL = 2.2      # seconds between spawns at start

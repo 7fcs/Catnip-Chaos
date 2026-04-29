@@ -10,7 +10,7 @@ from constants import (
     OBSTACLE_BASE_INTERVAL, OBSTACLE_MIN_INTERVAL, OBSTACLE_DIFFICULTY_EVERY,
     SCORE_RATE,
 )
-from sprites.player import Player
+from sprites.player import Player, DISPLAY_HEIGHT
 from sprites.obstacle import Obstacle
 
 
@@ -30,7 +30,7 @@ class GameView(arcade.View):
         # ── Player
         self.player = Player()
         self.player.center_x = PLAYER_START_X
-        self.player.center_y = GROUND_TOP + SPRITE_SIZE / 2
+        self.player.center_y = GROUND_TOP + DISPLAY_HEIGHT / 2
 
         self.player_list = arcade.SpriteList()
         self.player_list.append(self.player)
@@ -106,6 +106,10 @@ class GameView(arcade.View):
         # Player physics
         self.physics_engine.update()
 
+        # Player animation
+        self._update_player_animation()
+        self.player.update_animation(delta_time)
+
         # Score
         self.score += SCORE_RATE * delta_time
 
@@ -126,6 +130,15 @@ class GameView(arcade.View):
         # Collision -> game over
         if self.player.collides_with_list(self.obstacle_list):
             self._end_game()
+
+    def _update_player_animation(self) -> None:
+        if not self.player.is_on_ground:
+            if self.player.change_y > 0:
+                self.player.set_animation('jump_up')
+            else:
+                self.player.set_animation('jump_fall')
+        else:
+            self.player.set_animation('run')
 
     def _spawn_obstacle(self):
         # Randomly alternate between 1-tile and 2-tile tall obstacles
