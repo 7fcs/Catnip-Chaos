@@ -4,6 +4,7 @@ import arcade
 from constants import (
     SCREEN_WIDTH, SCREEN_HEIGHT,
     GROUND_HEIGHT, GROUND_TOP,
+    GRASS_TILE_PATH, GRASS_TILE_WIDTH,
     PLAYER_START_X, SPRITE_SIZE,
     GRAVITY, JUMP_SPEED,
     OBSTACLE_BASE_SPEED, OBSTACLE_SPEED_INCREMENT, OBSTACLE_MAX_SPEED,
@@ -36,14 +37,24 @@ class GameView(arcade.View):
         self.player_list.append(self.player)
 
         # ── Ground platform (physics wall)
-        ground_sprite = arcade.SpriteSolidColor(
-            SCREEN_WIDTH + 200, GROUND_HEIGHT, GROUND_COLOR
-        )
-        ground_sprite.center_x = SCREEN_WIDTH / 2
-        ground_sprite.center_y = GROUND_HEIGHT / 2
-
         self.wall_list = arcade.SpriteList()
-        self.wall_list.append(ground_sprite)
+        wall = arcade.SpriteSolidColor(SCREEN_WIDTH + 200, GROUND_HEIGHT, (34, 100, 34))
+        wall.center_x = SCREEN_WIDTH / 2
+        wall.center_y = GROUND_HEIGHT / 2
+        self.wall_list.append(wall)
+
+        # ── Grass tiles (visual only, scrolls with obstacles)
+        self.grass_list = arcade.SpriteList()
+        self.grass_tex = arcade.load_texture(GRASS_TILE_PATH)
+        self.grass_tiles = []
+        self.grass_offset = 0.0
+        for x in range(-GRASS_TILE_WIDTH, SCREEN_WIDTH + GRASS_TILE_WIDTH * 2, GRASS_TILE_WIDTH):
+            tile = arcade.Sprite()
+            tile.texture = self.grass_tex
+            tile.center_x = x
+            tile.center_y = GROUND_HEIGHT / 2
+            self.grass_list.append(tile)
+            self.grass_tiles.append(tile)
 
         # ── Physics engine
         self.physics_engine = arcade.PhysicsEnginePlatformer(
@@ -65,26 +76,16 @@ class GameView(arcade.View):
         # ── Input state
         self.jump_pressed = False
 
-    # —— Drawing
-    def on_draw(self):
-        self.clear()
-
-        self.wall_list.draw()
-        self.obstacle_list.draw()
-        self.player_list.draw()
-
-        self._draw_hud()
-
-    def _draw_hud(self):
-        arcade.draw_text(
-            f"Score: {int(self.score)}",
+        # ── HUD Text objects
+        self.score_text = arcade.Text(
+            f"Score: 0",
             SCREEN_WIDTH - 16, SCREEN_HEIGHT - 16,
             SCORE_TEXT_COLOR,
             font_size=HUD_FONT_SIZE,
             anchor_x="right",
             anchor_y="top",
         )
-        arcade.draw_text(
+        self.speed_text = arcade.Text(
             f"Speed: {int(self.obstacle_speed)}",
             SCREEN_WIDTH - 16, SCREEN_HEIGHT - 44,
             SCORE_TEXT_COLOR,
@@ -92,7 +93,7 @@ class GameView(arcade.View):
             anchor_x="right",
             anchor_y="top",
         )
-        arcade.draw_text(
+        self.controls_text = arcade.Text(
             "SPACE / UP — Jump",
             16, SCREEN_HEIGHT - 16,
             SCORE_TEXT_COLOR,
@@ -100,6 +101,27 @@ class GameView(arcade.View):
             anchor_x="left",
             anchor_y="top",
         )
+
+    # —— Drawing
+    def on_draw(self):
+        self.clear()
+
+        self.wall_list.draw()
+        self.grass_list.draw()
+        self.obstacle_list.draw()
+        self.player_list.draw()
+
+        self._draw_hud()
+
+    def _draw_hud(self):
+        self.score_text.draw()
+        self.speed_text.draw()
+        self.controls_text.draw()
+
+    def _update_hud_text(self):
+        """Update Text objects when values change."""
+        self.score_text.text = f"Score: {int(self.score)}"
+        self.speed_text.text = f"Speed: {int(self.obstacle_speed)}"
 
     # —— Update
     def on_update(self, delta_time: float):
@@ -112,6 +134,7 @@ class GameView(arcade.View):
 
         # Score
         self.score += SCORE_RATE * delta_time
+        self._update_hud_text()
 
         # Spawn obstacles
         self.time_since_spawn += delta_time
@@ -127,7 +150,16 @@ class GameView(arcade.View):
                 self.obstacles_passed += 1
                 self._maybe_increase_difficulty()
 
-        # Collision -> game over
+        self.grass_offset -= self.obstacle_speed * delta_time
+
+        # wrap offset when it exceeds one tile width
+        if self.grass_offset <= -GRASS_TILE_WIDTH:
+            self.grass_offset += GRASS_TILE_WIDTH
+
+        for i, tile in enumerate(self.grass_tiles):
+            tile.center_x = (i * GRASS_TILE_WIDTH) - GRASS_TILE_WIDTH + self.grass_offset
+
+        # Collision = game over
         if self.player.collides_with_list(self.obstacle_list):
             self._end_game()
 

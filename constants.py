@@ -28,6 +28,8 @@ SPRITE_SIZE = SPRITE_NATIVE_SIZE * SPRITE_SCALE  # 48 px on screen
 # —— Layout
 GROUND_HEIGHT = 60          # px — visual + physics ground thickness
 GROUND_TOP = GROUND_HEIGHT  # y-coordinate of the ground surface
+GRASS_TILE_PATH = "sprites/ground/grass_tile.png"
+GRASS_TILE_WIDTH = 64       # px — width of one grass tile
 
 PLAYER_START_X = 160        # fixed horizontal position of the player
 

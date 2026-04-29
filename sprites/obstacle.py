@@ -1,27 +1,42 @@
+import random
 import arcade
 from constants import SPRITE_SIZE, GROUND_TOP, SCREEN_WIDTH
 
 
-OBSTACLE_COLOR = (101, 67, 33)
+class Obstacle(arcade.Sprite):
+    """An oncoming obstacle with random sprite selection."""
 
+    # Sprite paths for small (1-tile) and large (2-tile) obstacles
+    SMALL_SPRITES = [
+        "sprites/obstacles/spikes.png",
+        "sprites/obstacles/trash_pile.png",
+        "sprites/obstacles/small_potted_plant.png",
+    ]
 
-class Obstacle(arcade.SpriteSolidColor):
-    """An oncoming obstacle.
-
-    height_tiles controls how many 16 px tiles tall the obstacle is (1 or 2).
-    TODO Replace with sprite art when ready; keep the same SPRITE_SIZE grid.
-    """
+    LARGE_SPRITES = [
+        "sprites/obstacles/crystal.png",
+        "sprites/obstacles/fire_hydrant.png",
+        "sprites/obstacles/cactus.png",
+    ]
 
     def __init__(self, speed: float, height_tiles: int = 1):
-        width = SPRITE_SIZE
-        height = SPRITE_SIZE * height_tiles
-        super().__init__(width, height, OBSTACLE_COLOR)
+        super().__init__()
 
         self.speed = speed  # px / sec, set by GameView based on difficulty
 
-        # Spawn just off the right edge of the screen
-        self.center_x = SCREEN_WIDTH + width / 2 + 4
-        self.center_y = GROUND_TOP + height / 2
+        # Select random sprite based on height
+        if height_tiles == 1:
+            sprite_path = random.choice(self.SMALL_SPRITES)
+        else:
+            sprite_path = random.choice(self.LARGE_SPRITES)
+
+        # Load and set texture
+        self.texture = arcade.load_texture(sprite_path)
+        self.scale = 3.0  # 3x scale to match SPRITE_SIZE (16 * 3 = 48)
+
+        # Position
+        self.center_x = SCREEN_WIDTH + self.width / 2 + 4
+        self.center_y = GROUND_TOP + self.height / 2
 
     def update_position(self, delta_time: float) -> None:
         """Move the obstacle leftward. Called each frame from GameView."""

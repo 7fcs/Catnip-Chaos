@@ -16,64 +16,47 @@ class GameOverView(arcade.View):
         self.score = score
         self.high_score = high_score
 
+        cx = SCREEN_WIDTH / 2
+        cy = SCREEN_HEIGHT / 2
+        self.game_over_text = arcade.Text(
+            "GAME OVER", cx, cy + 100, ACCENT_COLOR,
+            font_size=52, anchor_x="center", anchor_y="center", bold=True
+        )
+        self.score_text = arcade.Text(
+            f"Score: {self.score}", cx, cy + 20, TEXT_COLOR,
+            font_size=28, anchor_x="center", anchor_y="center"
+        )
+        self.best_text = arcade.Text(
+            "", cx, cy - 30, TEXT_COLOR,
+            font_size=20, anchor_x="center", anchor_y="center"
+        )
+        self.restart_text = arcade.Text(
+            "Press SPACE to play again", cx, cy - 100, ACCENT_COLOR,
+            font_size=18, anchor_x="center", anchor_y="center"
+        )
+        self.esc_text = arcade.Text(
+            "Press ESC for title screen", cx, cy - 130, TEXT_COLOR,
+            font_size=14, anchor_x="center", anchor_y="center"
+        )
+        self._update_text()
+
+    def _update_text(self):
+        """Update best text based on score."""
+        is_new_best = self.score >= self.high_score
+        self.best_text.color = GOLD_COLOR if is_new_best else TEXT_COLOR
+        self.best_text.text = "NEW BEST!" if is_new_best else f"Best: {self.high_score}"
+
     def on_show_view(self):
         arcade.set_background_color(BACKGROUND_COLOR)
 
     def on_draw(self):
         self.clear()
 
-        cx = SCREEN_WIDTH / 2
-        cy = SCREEN_HEIGHT / 2
-
-        arcade.draw_text(
-            "GAME OVER",
-            cx, cy + 100,
-            ACCENT_COLOR,
-            font_size=52,
-            anchor_x="center",
-            anchor_y="center",
-            bold=True,
-        )
-
-        arcade.draw_text(
-            f"Score: {self.score}",
-            cx, cy + 20,
-            TEXT_COLOR,
-            font_size=28,
-            anchor_x="center",
-            anchor_y="center",
-        )
-
-        is_new_best = self.score >= self.high_score
-        best_color = GOLD_COLOR if is_new_best else TEXT_COLOR
-        best_label = "NEW BEST!" if is_new_best else f"Best: {self.high_score}"
-
-        arcade.draw_text(
-            best_label,
-            cx, cy - 30,
-            best_color,
-            font_size=20,
-            anchor_x="center",
-            anchor_y="center",
-        )
-
-        arcade.draw_text(
-            "Press SPACE to play again",
-            cx, cy - 100,
-            ACCENT_COLOR,
-            font_size=18,
-            anchor_x="center",
-            anchor_y="center",
-        )
-
-        arcade.draw_text(
-            "Press ESC for title screen",
-            cx, cy - 130,
-            TEXT_COLOR,
-            font_size=14,
-            anchor_x="center",
-            anchor_y="center",
-        )
+        self.game_over_text.draw()
+        self.score_text.draw()
+        self.best_text.draw()
+        self.restart_text.draw()
+        self.esc_text.draw()
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.SPACE:

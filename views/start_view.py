@@ -1,5 +1,5 @@
 import arcade
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, GROUND_TOP
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, GROUND_TOP, GROUND_HEIGHT, GRASS_TILE_PATH, GRASS_TILE_WIDTH
 from sprites.player import Player, DISPLAY_HEIGHT
 
 
@@ -21,12 +21,39 @@ class StartView(arcade.View):
         self.player_list = arcade.SpriteList()
         self.player_list.append(self.player)
 
-        self.ground = arcade.SpriteSolidColor(SCREEN_WIDTH + 200, 60, (34, 100, 34))
-        self.ground.center_x = SCREEN_WIDTH / 2
-        self.ground.center_y = 30
+        self.wall_list = arcade.SpriteList()
+        wall = arcade.SpriteSolidColor(SCREEN_WIDTH + 200, GROUND_HEIGHT, (34, 100, 34))
+        wall.center_x = SCREEN_WIDTH / 2
+        wall.center_y = GROUND_HEIGHT / 2
+        self.wall_list.append(wall)
 
-        self.ground_list = arcade.SpriteList()
-        self.ground_list.append(self.ground)
+        self.grass_list = arcade.SpriteList()
+        grass_tex = arcade.load_texture(GRASS_TILE_PATH)
+        for x in range(-GRASS_TILE_WIDTH, SCREEN_WIDTH + GRASS_TILE_WIDTH * 2, GRASS_TILE_WIDTH):
+            tile = arcade.Sprite()
+            tile.texture = grass_tex
+            tile.center_x = x
+            tile.center_y = GROUND_HEIGHT / 2
+            self.grass_list.append(tile)
+
+        cx = SCREEN_WIDTH / 2
+        cy = SCREEN_HEIGHT / 2
+        self.title_text = arcade.Text(
+            "CATNIP CHAOS", cx, cy + 150, ACCENT_COLOR,
+            font_size=56, anchor_x="center", anchor_y="center", bold=True
+        )
+        self.subtitle_text = arcade.Text(
+            "Jump over obstacles — don't get hit!", cx, cy + 80, TEXT_COLOR,
+            font_size=18, anchor_x="center", anchor_y="center"
+        )
+        self.controls_text = arcade.Text(
+            "SPACE / UP  —  Jump", cx, cy + 40, TEXT_COLOR,
+            font_size=14, anchor_x="center", anchor_y="center"
+        )
+        self.start_text = arcade.Text(
+            "Press SPACE to start", cx, cy - 30, ACCENT_COLOR,
+            font_size=20, anchor_x="center", anchor_y="center"
+        )
 
     def on_update(self, delta_time: float):
         self.player.update_animation(delta_time)
@@ -34,48 +61,14 @@ class StartView(arcade.View):
     def on_draw(self):
         self.clear()
 
-        self.ground_list.draw()
+        self.wall_list.draw()
+        self.grass_list.draw()
         self.player_list.draw()
 
-        cx = SCREEN_WIDTH / 2
-        cy = SCREEN_HEIGHT / 2
-
-        arcade.draw_text(
-            "CATNIP CHAOS",
-            cx, cy + 150,
-            ACCENT_COLOR,
-            font_size=56,
-            anchor_x="center",
-            anchor_y="center",
-            bold=True,
-        )
-
-        arcade.draw_text(
-            "Jump over obstacles — don't get hit!",
-            cx, cy + 80,
-            TEXT_COLOR,
-            font_size=18,
-            anchor_x="center",
-            anchor_y="center",
-        )
-
-        arcade.draw_text(
-            "SPACE / UP  —  Jump",
-            cx, cy + 40,
-            TEXT_COLOR,
-            font_size=14,
-            anchor_x="center",
-            anchor_y="center",
-        )
-
-        arcade.draw_text(
-            "Press SPACE to start",
-            cx, cy - 30,
-            ACCENT_COLOR,
-            font_size=20,
-            anchor_x="center",
-            anchor_y="center",
-        )
+        self.title_text.draw()
+        self.subtitle_text.draw()
+        self.controls_text.draw()
+        self.start_text.draw()
 
     def on_key_press(self, key, modifiers):
         if key in (arcade.key.SPACE, arcade.key.RETURN):
