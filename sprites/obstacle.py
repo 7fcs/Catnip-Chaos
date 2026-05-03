@@ -1,45 +1,45 @@
 import random
 import arcade
-from constants import SPRITE_SIZE, GROUND_TOP, SCREEN_WIDTH
+from constants import GROUND_TOP, SCREEN_WIDTH, OVERHEAD_OBSTACLE_BOTTOM
 
 
 class Obstacle(arcade.Sprite):
-    """An oncoming obstacle with random sprite selection."""
+    """An oncoming obstacle. Ground obstacles are jumped; overhead obstacles are ducked."""
 
-    # Sprite paths for small (1-tile) and large (2-tile) obstacles
-    SMALL_SPRITES = [
-        "sprites/obstacles/spikes.png",
-        "sprites/obstacles/trash_pile.png",
-        "sprites/obstacles/small_potted_plant.png",
+    GROUND_SPRITES = [
+        "sprites/obstacles/obstacle_bin.png",
+        "sprites/obstacles/obstacle_fishbowl.png",
+        "sprites/obstacles/obstacle_scratcher.png",
+        "sprites/obstacles/obstacle_yarn.png",
     ]
 
-    LARGE_SPRITES = [
-        "sprites/obstacles/crystal.png",
-        "sprites/obstacles/fire_hydrant.png",
-        "sprites/obstacles/cactus.png",
+    OVERHEAD_SPRITES = [
+        "sprites/obstacles/cloud_1.png",
+        "sprites/obstacles/cloud_2.png",
+        "sprites/obstacles/cloud_3.png",
     ]
 
-    def __init__(self, speed: float, height_tiles: int = 1):
+    def __init__(self, speed: float, obstacle_type: str = "ground"):
         super().__init__()
 
-        self.speed = speed  # px / sec, set by GameView based on difficulty
+        self.speed = speed
+        self.obstacle_type = obstacle_type
 
-        # Select random sprite based on height
-        if height_tiles == 1:
-            sprite_path = random.choice(self.SMALL_SPRITES)
+        if obstacle_type == "overhead":
+            sprite_path = random.choice(self.OVERHEAD_SPRITES)
         else:
-            sprite_path = random.choice(self.LARGE_SPRITES)
+            sprite_path = random.choice(self.GROUND_SPRITES)
 
-        # Load and set texture
         self.texture = arcade.load_texture(sprite_path)
-        self.scale = 3.0  # 3x scale to match SPRITE_SIZE (16 * 3 = 48)
+        self.scale = 1.0
 
-        # Position
         self.center_x = SCREEN_WIDTH + self.width / 2 + 4
-        self.center_y = GROUND_TOP + self.height / 2
+        if obstacle_type == "overhead":
+            self.center_y = OVERHEAD_OBSTACLE_BOTTOM + self.height / 2
+        else:
+            self.center_y = GROUND_TOP + self.height / 2
 
     def update_position(self, delta_time: float) -> None:
-        """Move the obstacle leftward. Called each frame from GameView."""
         self.center_x -= self.speed * delta_time
 
     @property

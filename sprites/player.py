@@ -2,7 +2,7 @@ import os
 import arcade
 from arcade.hitbox import HitBox
 
-from constants import GROUND_TOP
+from constants import GROUND_TOP, DUCK_HITBOX_HEIGHT_RATIO, DUCK_HITBOX_WIDTH_RATIO
 
 
 SPRITE_SHEET_DIR = os.path.join(os.path.dirname(__file__), 'cat', 'sheets')
@@ -12,13 +12,13 @@ CAT_SCALE = 0.25
 
 DISPLAY_WIDTH = FRAME_WIDTH * CAT_SCALE
 DISPLAY_HEIGHT = FRAME_HEIGHT * CAT_SCALE
-
-FPS = 60
+PLAYER_FOOT_OFFSET = 14
 
 ANIMATION_FPS = {
     'run': 14,
     'jump_up': 10,
     'jump_fall': 10,
+    'duck': 8,
 }
 
 COLLISION_WIDTH_RATIO = 0.55
@@ -26,7 +26,7 @@ COLLISION_HEIGHT_RATIO = 0.80
 
 
 class Player(arcade.Sprite):
-    """The player cat with frame-by-frame animations."""
+    """The player cat with frame-by-frame animations and a smaller duck hitbox."""
 
     def __init__(self):
         super().__init__()
@@ -35,10 +35,12 @@ class Player(arcade.Sprite):
         self._load_animation('run')
         self._load_animation('jump_up')
         self._load_animation('jump_fall')
+        self._load_animation('duck')
 
         self.current_animation = 'run'
         self.cur_frame_idx = 0
         self.frame_timer = 0.0
+        self.is_ducking = False
 
         self.texture = self.animations['run'][0]
         self.scale = CAT_SCALE
@@ -54,8 +56,12 @@ class Player(arcade.Sprite):
             columns=num_frames,
             count=num_frames,
         )
-
         self.animations[name] = textures
+
+    def set_ducking(self, ducking: bool) -> None:
+        if self.is_ducking != ducking:
+            self.is_ducking = ducking
+            self._update_hitbox()
 
     def set_animation(self, name: str) -> None:
         if name != self.current_animation and name in self.animations:
@@ -80,9 +86,16 @@ class Player(arcade.Sprite):
             self.texture = frames[self.cur_frame_idx]
 
     def _update_hitbox(self) -> None:
-        hw = (DISPLAY_WIDTH * COLLISION_WIDTH_RATIO) / 2
-        hh = (DISPLAY_HEIGHT * COLLISION_HEIGHT_RATIO) / 2
-        points = [(-hw, -hh), (hw, -hh), (hw, hh), (-hw, hh)]
+        if self.is_ducking:
+            hw = (DISPLAY_WIDTH * DUCK_HITBOX_WIDTH_RATIO) / 2
+            height = DISPLAY_HEIGHT * DUCK_HITBOX_HEIGHT_RATIO
+        else:
+            hw = (DISPLAY_WIDTH * COLLISION_WIDTH_RATIO) / 2
+            height = DISPLAY_HEIGHT * COLLISION_HEIGHT_RATIO
+
+        bottom = -DISPLAY_HEIGHT / 2 + PLAYER_FOOT_OFFSET
+        top = bottom + height
+        points = [(-hw, bottom), (hw, bottom), (hw, top), (-hw, top)]
         self.hit_box = HitBox(points)
 
     @property
